@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contabilizador de Horas Extras</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .dia {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .campo {
+            margin-right: 15px;
+            margin-bottom: 5px;
+        }
+        input, textarea {
+            margin-right: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+        }
+        #total {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .eliminar {
+            color: red;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Contabilizador de Horas Extras 2026</h1>
+    <p>Horas extras = (Hora Fin Real - Hora Inicio) - (Hora Fin Esperada - Hora Inicio), si positivo.</p>
+    <div id="dias"></div>
+    <button onclick="agregarDia()">+ Agregar día</button>
+    <button onclick="calcularTotal()">= Calcular Total Horas Extras</button>
+    <button onclick="limpiarDatos()">Limpiar Todos los Datos</button>
+    <button onclick="descargarRespaldo()">↓ Descargar Datos</button>
+    <div id="total"></div>
+    <table id="resumen">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Motivo</th>
+                <th>Hora Inicio</th>
+                <th>Hora Fin Esperada</th>
+                <th>Hora Fin Real</th>
+                <th>Horas Esperadas</th>
+                <th>Horas Reales</th>
+                <th>Horas Extras</th>
+                <th>Repuesto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="resumenBody"></tbody>
+    </table>
+
+    <script>
+        let dias = JSON.parse(localStorage.getItem('horasExtras2026')) || [];
+
+        function saveData() {
+            localStorage.setItem('horasExtras2026', JSON.stringify(dias));
+        }
+
+        function calcularHorasTrabajadas(inicio, fin) {
+            if (!inicio || !fin) return 0;
+            const [h1, m1] = inicio.split(':').map(Number);
+            const [h2, m2] = fin.split(':').map(Number);
+            const minutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+            return minutos / 60;
+        }
+
+        function loadData() {
+            const container = document.getElementById('dias');
+            const resumenBody = document.getElementById('resumenBody');
+            container.innerHTML = '';
+            resumenBody.innerHTML = '';
+            dias.forEach((dia, index) => {
+                // Formulario de edición
+                const div = document.createElement('div');
+                div.className = 'dia';
+                div.innerHTML = `
+                    <div class="campo">Fecha: <input type="date" id="fecha${index}" value="${dia.fecha}" onchange="updateDia(${index})"></div>
+                    <div class="campo">Motivo: <textarea id="motivo${index}" onchange="updateDia(${index})">${dia.motivo || ''}</textarea></div>
+                    <div class="campo">Hora Inicio: <input type="time" id="horaInicio${index}" value="${dia.horaInicio || ''}" onchange="updateDia(${index})"></div>
+                    <div class="campo">Hora Fin Esperada: <input type="time" id="horaFinEsperada${index}" value="${dia.horaFinEsperada || ''}" onchange="updateDia(${index})"></div>
+                    <div class="campo">Hora Fin Real: <input type="time" id="horaFinReal${index}" value="${dia.horaFinReal || ''}" onchange="updateDia(${index})"></div>
+                    <div class="campo">Repuesto: <input type="checkbox" id="repuesto${index}" ${dia.repuesto ? 'checked' : ''} onchange="updateDia(${index})"></div>
+                    <span class="eliminar" onclick="eliminarDia(${index})">Eliminar</span>
+                `;
+                container.appendChild(div);
+
+                // Fila en resumen
+                const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
+                const horasExtras = Math.max(0, horasReales - horasEsperadas);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dia.fecha}</td>
+                    <td>${dia.motivo || ''}</td>
+                    <td>${dia.horaInicio || ''}</td>
+                    <td>${dia.horaFinEsperada || ''}</td>
+                    <td>${dia.horaFinReal || ''}</td>
+                    <td>${horasEsperadas.toFixed(2)}</td>
+                    <td>${horasReales.toFixed(2)}</td>
+                    <td><strong>${horasExtras.toFixed(2)}</strong></td>
+                    <td><span style="color: ${dia.repuesto ? 'green' : 'red'};">${dia.repuesto ? 'Sí' : 'No'}</span></td>
+                    <td><span class="eliminar" onclick="eliminarDia(${index})">Eliminar</span></td>
+                `;
+                resumenBody.appendChild(row);
+            });
+        }
+
+        function agregarDia() {
+            const fecha = new Date().toISOString().split('T')[0];
+            dias.push({ fecha, motivo: '', horaInicio: '', horaFinEsperada: '', horaFinReal: '', repuesto: false });
+            saveData();
+            loadData();
+        }
+
+        function updateDia(index) {
+            const fecha = document.getElementById(`fecha${index}`).value;
+            const motivo = document.getElementById(`motivo${index}`).value;
+            const horaInicio = document.getElementById(`horaInicio${index}`).value;
+            const horaFinEsperada = document.getElementById(`horaFinEsperada${index}`).value;
+            const horaFinReal = document.getElementById(`horaFinReal${index}`).value;
+            const repuesto = document.getElementById(`repuesto${index}`).checked;
+            dias[index] = { fecha, motivo, horaInicio, horaFinEsperada, horaFinReal, repuesto };
+            saveData();
+            loadData(); // Recargar para actualizar cálculos
+        }
+
+        function eliminarDia(index) {
+            dias.splice(index, 1);
+            saveData();
+            loadData();
+        }
+
+        function calcularTotal() {
+            let totalExtras = 0;
+            let totalRepuestas = 0;
+            dias.forEach(dia => {
+                const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
+                const extras = Math.max(0, horasReales - horasEsperadas);
+                if (dia.repuesto) {
+                    totalRepuestas += extras;
+                } else {
+                    totalExtras += extras;
+                }
+            });
+            document.getElementById('total').innerHTML = `
+                Total Horas Extras Pendientes: ${totalExtras.toFixed(2)} horas<br>
+                Total Horas Extras Repuestas: ${totalRepuestas.toFixed(2)} horas
+            `;
+        }
+
+        function limpiarDatos() {
+            if (confirm('¿Estás seguro de que quieres limpiar todos los datos? Toda tu información se perderá')) {
+                dias = [];
+                saveData();
+                loadData();
+                document.getElementById('total').innerHTML = '';
+            }
+        }
+
+        function descargarRespaldo() {
+            let csv = 'Fecha,Motivo,Hora Inicio,Hora Fin Esperada,Hora Fin Real,Repuesto\n';
+            dias.forEach(dia => {
+                csv += `"${dia.fecha}","${dia.motivo || ''}","${dia.horaInicio || ''}","${dia.horaFinEsperada || ''}","${dia.horaFinReal || ''}","${dia.repuesto ? 'Sí' : 'No'}"\n`;
+            });
+            const dataBlob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'respaldo_horas_extras_2026.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Cargar datos al iniciar
+        loadData();
+    </script>
+    <br><br><br><br>
+    <p style="font-style: italic;">app creada por RBR</p>
+</body>
+</html>
