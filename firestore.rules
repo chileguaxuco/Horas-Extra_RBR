@@ -1,0 +1,10 @@
+// Copy these rules into Firebase Console > Firestore Database > Rules
+// This allows each authenticated user to read/write only their own data.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

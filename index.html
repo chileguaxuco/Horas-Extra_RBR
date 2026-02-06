@@ -386,10 +386,16 @@
                 repuesto: dia.repuesto
             };
             if (dia.id) {
-                return getUserCollection().doc(dia.id).set(data);
+                return getUserCollection().doc(dia.id).set(data).catch(err => {
+                    console.error('Error saving:', err);
+                    alert('Error al guardar: ' + err.message);
+                });
             } else {
                 return getUserCollection().add(data).then(docRef => {
                     dia.id = docRef.id;
+                }).catch(err => {
+                    console.error('Error adding:', err);
+                    alert('Error al guardar: ' + err.message);
                 });
             }
         }
@@ -495,6 +501,9 @@
                 saveToFirestore(nuevoDia).then(() => {
                     dias.push(nuevoDia);
                     loadData();
+                }).catch(err => {
+                    console.error('Error agregando dia:', err);
+                    alert('Error al agregar dia. Revisa la consola del navegador (F12) para mas detalles.');
                 });
             }
         }
