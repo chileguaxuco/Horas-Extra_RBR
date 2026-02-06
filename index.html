@@ -5,89 +5,418 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contabilizador de Horas Extras</title>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
+            background: #f5f7fa;
+            color: #333;
         }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        /* Auth section */
+        #auth-section {
+            text-align: center;
+            margin: 60px auto;
+            max-width: 400px;
+        }
+        #auth-section h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        #auth-section p {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+        .btn-google {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: #fff;
+            border: 2px solid #4285f4;
+            border-radius: 8px;
+            color: #4285f4;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-google:hover { background: #e8f0fe; }
+
+        #user-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        #user-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #user-bar img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        .btn-logout {
+            padding: 6px 14px;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .btn-logout:hover { background: #c0392b; }
+
+        /* App section */
+        #app-section { display: none; }
+
+        .actions-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-primary { background: #3498db; color: #fff; }
+        .btn-success { background: #27ae60; color: #fff; }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-secondary { background: #95a5a6; color: #fff; }
+
+        /* Entry cards */
         .dia {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            margin-bottom: 12px;
+            padding: 14px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
         .campo {
-            margin-right: 15px;
-            margin-bottom: 5px;
+            display: flex;
+            flex-direction: column;
+            font-size: 0.85em;
+            color: #555;
         }
-        input, textarea {
-            margin-right: 5px;
+        .campo label { margin-bottom: 3px; font-weight: 600; }
+        .campo input, .campo textarea {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.95em;
         }
-        button {
-            padding: 5px 10px;
-            margin: 5px;
-        }
-        #total {
-            font-weight: bold;
-            margin-top: 20px;
+        .campo textarea { resize: vertical; min-height: 32px; }
+        .campo-checkbox {
+            flex-direction: row;
+            align-items: center;
+            gap: 5px;
+            margin-top: 18px;
         }
         .eliminar {
-            color: red;
+            color: #e74c3c;
             cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+            margin-left: auto;
         }
+        .eliminar:hover { text-decoration: underline; }
+
+        /* Totals */
+        #total {
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 14px;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
         th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 8px 10px;
             text-align: left;
+            font-size: 0.88em;
         }
-        th {
-            background-color: #f2f2f2;
+        th { background: #2c3e50; color: #fff; font-weight: 600; }
+        tr:nth-child(even) { background: #f9f9f9; }
+
+        /* Loading spinner */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        /* Setup notice */
+        .setup-notice {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        .setup-notice strong { color: #856404; }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #aaa;
+            font-style: italic;
+            font-size: 0.85em;
+        }
+
+        @media (max-width: 600px) {
+            .dia { flex-direction: column; align-items: flex-start; }
+            .eliminar { margin-left: 0; margin-top: 8px; }
+            .actions-bar { flex-direction: column; }
+            .btn { width: 100%; text-align: center; }
         }
     </style>
 </head>
 <body>
     <h1>Contabilizador de Horas Extras 2026</h1>
-    <p>Horas extras = (Hora Fin Real - Hora Inicio) - (Hora Fin Esperada - Hora Inicio), si positivo.</p>
-    <div id="dias"></div>
-    <button onclick="agregarDia()">+ Agregar día</button>
-    <button onclick="calcularTotal()">= Calcular Total Horas Extras</button>
-    <button onclick="limpiarDatos()">Limpiar Todos los Datos</button>
-    <button onclick="descargarRespaldo()">↓ Descargar Datos</button>
-    <div id="total"></div>
-    <table id="resumen">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Motivo</th>
-                <th>Hora Inicio</th>
-                <th>Hora Fin Esperada</th>
-                <th>Hora Fin Real</th>
-                <th>Horas Esperadas</th>
-                <th>Horas Reales</th>
-                <th>Horas Extras</th>
-                <th>Repuesto</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="resumenBody"></tbody>
-    </table>
+    <p class="subtitle">Horas extras = (Hora Fin Real - Hora Inicio) - (Hora Fin Esperada - Hora Inicio)</p>
+
+    <!-- Auth Section -->
+    <div id="auth-section">
+        <h2>Iniciar Sesion</h2>
+        <p>Inicia sesion para guardar tus horas extras en la nube y acceder desde cualquier dispositivo.</p>
+        <button class="btn-google" onclick="signIn()">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Iniciar con Google
+        </button>
+        <div id="auth-error" style="color: #e74c3c; margin-top: 15px;"></div>
+    </div>
+
+    <!-- App Section (shown after login) -->
+    <div id="app-section">
+        <div id="user-bar">
+            <div class="user-info">
+                <img id="user-photo" src="" alt="foto">
+                <span id="user-name"></span>
+            </div>
+            <button class="btn-logout" onclick="signOutUser()">Cerrar Sesion</button>
+        </div>
+
+        <div class="actions-bar">
+            <button class="btn btn-primary" onclick="agregarDia()">+ Agregar dia</button>
+            <button class="btn btn-success" onclick="calcularTotal()">= Calcular Total</button>
+            <button class="btn btn-secondary" onclick="descargarRespaldo()">Descargar CSV</button>
+            <button class="btn btn-danger" onclick="limpiarDatos()">Limpiar Todo</button>
+        </div>
+
+        <div id="dias"></div>
+        <div id="total"></div>
+        <table id="resumen">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Motivo</th>
+                    <th>Inicio</th>
+                    <th>Fin Esperada</th>
+                    <th>Fin Real</th>
+                    <th>H. Esperadas</th>
+                    <th>H. Reales</th>
+                    <th>H. Extras</th>
+                    <th>Repuesto</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="resumenBody"></tbody>
+        </table>
+    </div>
+
+    <footer>app creada por RBR</footer>
+
+    <!-- Firebase SDKs (v9 compat for simplicity with vanilla JS) -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
     <script>
-        let dias = JSON.parse(localStorage.getItem('horasExtras2026')) || [];
+        // =============================================================
+        // FIREBASE CONFIGURATION
+        // Replace the values below with your own Firebase project config.
+        // Go to https://console.firebase.google.com/ -> Create project ->
+        // Add web app -> Copy the config object here.
+        // =============================================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-        function saveData() {
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let dias = [];
+        let currentUser = null;
+        let useLocalStorage = false; // fallback if Firebase not configured
+
+        // Check if Firebase is properly configured
+        function isFirebaseConfigured() {
+            return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('YOUR_');
+        }
+
+        // =====================
+        // AUTH FUNCTIONS
+        // =====================
+        function signIn() {
+            if (!isFirebaseConfigured()) {
+                // Fallback: skip auth, use localStorage
+                useLocalStorage = true;
+                dias = JSON.parse(localStorage.getItem('horasExtras2026')) || [];
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('app-section').style.display = 'block';
+                document.getElementById('user-bar').innerHTML = `
+                    <div class="user-info"><span>Modo local (sin cuenta)</span></div>
+                    <span style="color:#e67e22; font-size:0.85em;">Configura Firebase para guardar en la nube</span>
+                `;
+                loadData();
+                calcularTotal();
+                return;
+            }
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(err => {
+                document.getElementById('auth-error').textContent =
+                    'Error al iniciar sesion: ' + err.message;
+            });
+        }
+
+        function signOutUser() {
+            if (useLocalStorage) {
+                location.reload();
+                return;
+            }
+            auth.signOut();
+        }
+
+        // Listen for auth state changes
+        auth.onAuthStateChanged(user => {
+            if (!isFirebaseConfigured()) return; // skip if not configured
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('app-section').style.display = 'block';
+                document.getElementById('user-photo').src = user.photoURL || '';
+                document.getElementById('user-name').textContent = user.displayName || user.email;
+                loadFromFirestore();
+            } else {
+                currentUser = null;
+                document.getElementById('auth-section').style.display = 'block';
+                document.getElementById('app-section').style.display = 'none';
+            }
+        });
+
+        // =====================
+        // FIRESTORE FUNCTIONS
+        // =====================
+        function getUserCollection() {
+            return db.collection('users').doc(currentUser.uid).collection('horasExtras2026');
+        }
+
+        function loadFromFirestore() {
+            getUserCollection().orderBy('fecha').get().then(snapshot => {
+                dias = [];
+                snapshot.forEach(doc => {
+                    dias.push({ id: doc.id, ...doc.data() });
+                });
+                loadData();
+                calcularTotal();
+            }).catch(err => {
+                console.error('Error loading data:', err);
+            });
+        }
+
+        function saveToFirestore(dia) {
+            const data = {
+                fecha: dia.fecha,
+                motivo: dia.motivo,
+                horaInicio: dia.horaInicio,
+                horaFinEsperada: dia.horaFinEsperada,
+                horaFinReal: dia.horaFinReal,
+                repuesto: dia.repuesto
+            };
+            if (dia.id) {
+                return getUserCollection().doc(dia.id).set(data);
+            } else {
+                return getUserCollection().add(data).then(docRef => {
+                    dia.id = docRef.id;
+                });
+            }
+        }
+
+        function deleteFromFirestore(diaId) {
+            if (diaId) {
+                return getUserCollection().doc(diaId).delete();
+            }
+            return Promise.resolve();
+        }
+
+        function clearFirestore() {
+            const batch = db.batch();
+            return getUserCollection().get().then(snapshot => {
+                snapshot.forEach(doc => batch.delete(doc.ref));
+                return batch.commit();
+            });
+        }
+
+        // Fallback localStorage functions
+        function saveLocalData() {
             localStorage.setItem('horasExtras2026', JSON.stringify(dias));
         }
 
+        // =====================
+        // CORE APP FUNCTIONS
+        // =====================
         function calcularHorasTrabajadas(inicio, fin) {
             if (!inicio || !fin) return 0;
             const [h1, m1] = inicio.split(':').map(Number);
@@ -101,22 +430,39 @@
             const resumenBody = document.getElementById('resumenBody');
             container.innerHTML = '';
             resumenBody.innerHTML = '';
+
             dias.forEach((dia, index) => {
-                // Formulario de edición
                 const div = document.createElement('div');
                 div.className = 'dia';
                 div.innerHTML = `
-                    <div class="campo">Fecha: <input type="date" id="fecha${index}" value="${dia.fecha}" onchange="updateDia(${index})"></div>
-                    <div class="campo">Motivo: <textarea id="motivo${index}" onchange="updateDia(${index})">${dia.motivo || ''}</textarea></div>
-                    <div class="campo">Hora Inicio: <input type="time" id="horaInicio${index}" value="${dia.horaInicio || ''}" onchange="updateDia(${index})"></div>
-                    <div class="campo">Hora Fin Esperada: <input type="time" id="horaFinEsperada${index}" value="${dia.horaFinEsperada || ''}" onchange="updateDia(${index})"></div>
-                    <div class="campo">Hora Fin Real: <input type="time" id="horaFinReal${index}" value="${dia.horaFinReal || ''}" onchange="updateDia(${index})"></div>
-                    <div class="campo">Repuesto: <input type="checkbox" id="repuesto${index}" ${dia.repuesto ? 'checked' : ''} onchange="updateDia(${index})"></div>
+                    <div class="campo">
+                        <label>Fecha</label>
+                        <input type="date" id="fecha${index}" value="${dia.fecha}" onchange="updateDia(${index})">
+                    </div>
+                    <div class="campo">
+                        <label>Motivo</label>
+                        <textarea id="motivo${index}" onchange="updateDia(${index})">${dia.motivo || ''}</textarea>
+                    </div>
+                    <div class="campo">
+                        <label>Hora Inicio</label>
+                        <input type="time" id="horaInicio${index}" value="${dia.horaInicio || ''}" onchange="updateDia(${index})">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Esperada</label>
+                        <input type="time" id="horaFinEsperada${index}" value="${dia.horaFinEsperada || ''}" onchange="updateDia(${index})">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Real</label>
+                        <input type="time" id="horaFinReal${index}" value="${dia.horaFinReal || ''}" onchange="updateDia(${index})">
+                    </div>
+                    <div class="campo campo-checkbox">
+                        <input type="checkbox" id="repuesto${index}" ${dia.repuesto ? 'checked' : ''} onchange="updateDia(${index})">
+                        <label>Repuesto</label>
+                    </div>
                     <span class="eliminar" onclick="eliminarDia(${index})">Eliminar</span>
                 `;
                 container.appendChild(div);
 
-                // Fila en resumen
                 const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
                 const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
                 const horasExtras = Math.max(0, horasReales - horasEsperadas);
@@ -130,7 +476,7 @@
                     <td>${horasEsperadas.toFixed(2)}</td>
                     <td>${horasReales.toFixed(2)}</td>
                     <td><strong>${horasExtras.toFixed(2)}</strong></td>
-                    <td><span style="color: ${dia.repuesto ? 'green' : 'red'};">${dia.repuesto ? 'Sí' : 'No'}</span></td>
+                    <td><span style="color: ${dia.repuesto ? '#27ae60' : '#e74c3c'}; font-weight:600;">${dia.repuesto ? 'Si' : 'No'}</span></td>
                     <td><span class="eliminar" onclick="eliminarDia(${index})">Eliminar</span></td>
                 `;
                 resumenBody.appendChild(row);
@@ -139,9 +485,18 @@
 
         function agregarDia() {
             const fecha = new Date().toISOString().split('T')[0];
-            dias.push({ fecha, motivo: '', horaInicio: '', horaFinEsperada: '', horaFinReal: '', repuesto: false });
-            saveData();
-            loadData();
+            const nuevoDia = { fecha, motivo: '', horaInicio: '', horaFinEsperada: '', horaFinReal: '', repuesto: false };
+
+            if (useLocalStorage) {
+                dias.push(nuevoDia);
+                saveLocalData();
+                loadData();
+            } else {
+                saveToFirestore(nuevoDia).then(() => {
+                    dias.push(nuevoDia);
+                    loadData();
+                });
+            }
         }
 
         function updateDia(index) {
@@ -151,15 +506,30 @@
             const horaFinEsperada = document.getElementById(`horaFinEsperada${index}`).value;
             const horaFinReal = document.getElementById(`horaFinReal${index}`).value;
             const repuesto = document.getElementById(`repuesto${index}`).checked;
-            dias[index] = { fecha, motivo, horaInicio, horaFinEsperada, horaFinReal, repuesto };
-            saveData();
-            loadData(); // Recargar para actualizar cálculos
+
+            const updated = { ...dias[index], fecha, motivo, horaInicio, horaFinEsperada, horaFinReal, repuesto };
+            dias[index] = updated;
+
+            if (useLocalStorage) {
+                saveLocalData();
+            } else {
+                saveToFirestore(updated);
+            }
+            loadData();
+            calcularTotal();
         }
 
         function eliminarDia(index) {
-            dias.splice(index, 1);
-            saveData();
+            if (!confirm('Eliminar esta entrada?')) return;
+            const removed = dias.splice(index, 1)[0];
+
+            if (useLocalStorage) {
+                saveLocalData();
+            } else {
+                deleteFromFirestore(removed.id);
+            }
             loadData();
+            calcularTotal();
         }
 
         function calcularTotal() {
@@ -176,24 +546,32 @@
                 }
             });
             document.getElementById('total').innerHTML = `
-                Total Horas Extras Pendientes: ${totalExtras.toFixed(2)} horas<br>
-                Total Horas Extras Repuestas: ${totalRepuestas.toFixed(2)} horas
+                Total Horas Extras Pendientes: <strong>${totalExtras.toFixed(2)}</strong> horas<br>
+                Total Horas Extras Repuestas: <strong>${totalRepuestas.toFixed(2)}</strong> horas
             `;
         }
 
         function limpiarDatos() {
-            if (confirm('¿Estás seguro de que quieres limpiar todos los datos? Toda tu información se perderá')) {
+            if (!confirm('Estas seguro de que quieres limpiar todos los datos? Toda tu informacion se perdera.')) return;
+            if (useLocalStorage) {
                 dias = [];
-                saveData();
-                loadData();
-                document.getElementById('total').innerHTML = '';
+                saveLocalData();
+            } else {
+                clearFirestore().then(() => {
+                    dias = [];
+                    loadData();
+                    document.getElementById('total').innerHTML = '';
+                });
+                return;
             }
+            loadData();
+            document.getElementById('total').innerHTML = '';
         }
 
         function descargarRespaldo() {
             let csv = 'Fecha,Motivo,Hora Inicio,Hora Fin Esperada,Hora Fin Real,Repuesto\n';
             dias.forEach(dia => {
-                csv += `"${dia.fecha}","${dia.motivo || ''}","${dia.horaInicio || ''}","${dia.horaFinEsperada || ''}","${dia.horaFinReal || ''}","${dia.repuesto ? 'Sí' : 'No'}"\n`;
+                csv += `"${dia.fecha}","${dia.motivo || ''}","${dia.horaInicio || ''}","${dia.horaFinEsperada || ''}","${dia.horaFinReal || ''}","${dia.repuesto ? 'Si' : 'No'}"\n`;
             });
             const dataBlob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(dataBlob);
@@ -205,11 +583,6 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
-
-        // Cargar datos al iniciar
-        loadData();
     </script>
-    <br><br><br><br>
-    <p style="font-style: italic;">app creada por RBR</p>
 </body>
 </html>
