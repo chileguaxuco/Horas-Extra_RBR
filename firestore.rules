@@ -1,0 +1,15 @@
+// Copy these rules into Firebase Console > Firestore Database > Rules
+// This allows each authenticated user to read/write only their own data.
+// The admin (malpasorevolution@gmail.com) can read all users' data.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      // Usuarios normales solo leen/escriben sus propios datos
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Admin puede leer todo (pero no escribir en datos de otros)
+      allow read: if request.auth != null && request.auth.token.email == 'malpasorevolution@gmail.com';
+    }
+  }
+}
