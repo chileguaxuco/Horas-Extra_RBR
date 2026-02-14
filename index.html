@@ -209,11 +209,56 @@
             font-size: 0.85em;
         }
 
+        /* Admin Panel */
+        #admin-panel {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 3px solid #e74c3c;
+        }
+
+        #admin-panel h2 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .admin-controls label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .admin-controls select {
+            margin-left: 8px;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #admin-table {
+            font-size: 0.85em;
+        }
+
+        #admin-table tfoot tr {
+            background: #f8f9fa !important;
+            border-top: 2px solid #e74c3c;
+        }
+
         @media (max-width: 600px) {
             .dia { flex-direction: column; align-items: flex-start; }
             .eliminar { margin-left: 0; margin-top: 8px; }
             .actions-bar { flex-direction: column; }
             .btn { width: 100%; text-align: center; }
+            .admin-controls { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -270,6 +315,37 @@
         </table>
     </div>
 
+    <!-- Admin Panel (only shown to admin) -->
+    <div id="admin-panel" style="display: none;">
+        <h2>Panel de Administración</h2>
+        <div class="admin-controls">
+            <label>Filtrar por usuario:
+                <select id="user-filter" onchange="filterAdminData()">
+                    <option value="">Todos los usuarios</option>
+                </select>
+            </label>
+            <button class="btn btn-success" onclick="exportAdminCSV()">Descargar CSV</button>
+        </div>
+        <table id="admin-table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Fecha</th>
+                    <th>Motivo</th>
+                    <th>Inicio</th>
+                    <th>Fin Esperada</th>
+                    <th>Fin Real</th>
+                    <th>H. Esperadas</th>
+                    <th>H. Reales</th>
+                    <th>H. Extras</th>
+                    <th>Repuesto</th>
+                </tr>
+            </thead>
+            <tbody id="admin-table-body"></tbody>
+            <tfoot id="admin-totals"></tfoot>
+        </table>
+    </div>
+
     <footer>app creada por RBR</footer>
 
     <!-- Firebase SDKs (v9 compat for simplicity with vanilla JS) -->
@@ -297,9 +373,12 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        const ADMIN_EMAIL = "malpasorevolution@gmail.com";
+
         let dias = [];
         let currentUser = null;
         let useLocalStorage = false; // fallback if Firebase not configured
+        let allUsersData = []; // Store all users' data for admin panel
 
         // Check if Firebase is properly configured
         function isFirebaseConfigured() {
@@ -348,6 +427,13 @@
                 document.getElementById('app-section').style.display = 'block';
                 document.getElementById('user-photo').src = user.photoURL || '';
                 document.getElementById('user-name').textContent = user.displayName || user.email;
+
+                // Si es admin, mostrar panel de administración
+                if (user.email === ADMIN_EMAIL) {
+                    document.getElementById('admin-panel').style.display = 'block';
+                    loadAdminData();
+                }
+
                 loadFromFirestore();
             } else {
                 currentUser = null;
@@ -418,6 +504,164 @@
         // Fallback localStorage functions
         function saveLocalData() {
             localStorage.setItem('horasExtras2026', JSON.stringify(dias));
+        }
+
+        // =====================
+        // ADMIN FUNCTIONS
+        // =====================
+        async function loadAdminData() {
+            try {
+                const usersSnapshot = await db.collection('users').get();
+                allUsersData = [];
+                const userSet = new Set();
+
+                for (const userDoc of usersSnapshot.docs) {
+                    const userId = userDoc.id;
+                    const horasSnapshot = await db.collection('users')
+                        .doc(userId)
+                        .collection('horasExtras2026')
+                        .orderBy('fecha')
+                        .get();
+
+                    // Obtener nombre de usuario del currentUser si es el mismo, o del email
+                    let userName = userId;
+                    if (userId === currentUser.uid) {
+                        userName = currentUser.displayName || currentUser.email.split('@')[0];
+                    } else {
+                        // Para otros usuarios, usar su UID como nombre por ahora
+                        // En el futuro se puede agregar una colección /users/{uid} con el nombre
+                        userName = userId.substring(0, 8); // Usar primeros 8 chars del UID
+                    }
+
+                    horasSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        allUsersData.push({
+                            userId: userId,
+                            userName: userName,
+                            ...data
+                        });
+                    });
+
+                    if (horasSnapshot.size > 0) {
+                        userSet.add(userName);
+                    }
+                }
+
+                // Poblar filtro de usuarios
+                const filterSelect = document.getElementById('user-filter');
+                filterSelect.innerHTML = '<option value="">Todos los usuarios</option>';
+                Array.from(userSet).sort().forEach(name => {
+                    filterSelect.innerHTML += `<option value="${name}">${name}</option>`;
+                });
+
+                renderAdminTable(allUsersData);
+            } catch (err) {
+                console.error('Error loading admin data:', err);
+                alert('Error al cargar datos de administración: ' + err.message);
+            }
+        }
+
+        function filterAdminData() {
+            const filterValue = document.getElementById('user-filter').value;
+            const filtered = filterValue
+                ? allUsersData.filter(d => d.userName === filterValue)
+                : allUsersData;
+            renderAdminTable(filtered);
+        }
+
+        function renderAdminTable(data) {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+
+            // Agrupar por usuario para totales
+            const userTotals = {};
+
+            data.forEach(dia => {
+                const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
+                const horasExtras = Math.max(0, horasReales - horasEsperadas);
+
+                // Calcular totales
+                if (!userTotals[dia.userName]) {
+                    userTotals[dia.userName] = {
+                        pendientes: 0,
+                        repuestas: 0,
+                        total: 0
+                    };
+                }
+                userTotals[dia.userName].total += horasExtras;
+                if (dia.repuesto) {
+                    userTotals[dia.userName].repuestas += horasExtras;
+                } else {
+                    userTotals[dia.userName].pendientes += horasExtras;
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dia.userName}</td>
+                    <td>${dia.fecha}</td>
+                    <td>${dia.motivo || ''}</td>
+                    <td>${dia.horaInicio || ''}</td>
+                    <td>${dia.horaFinEsperada || ''}</td>
+                    <td>${dia.horaFinReal || ''}</td>
+                    <td>${horasEsperadas.toFixed(2)}</td>
+                    <td>${horasReales.toFixed(2)}</td>
+                    <td><strong>${horasExtras.toFixed(2)}</strong></td>
+                    <td><span style="color: ${dia.repuesto ? '#27ae60' : '#e74c3c'}; font-weight:600;">
+                        ${dia.repuesto ? 'Sí' : 'No'}
+                    </span></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Renderizar totales
+            const tfoot = document.getElementById('admin-totals');
+            tfoot.innerHTML = '';
+            Object.entries(userTotals).forEach(([userName, totals]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="8"><strong>TOTAL ${userName}</strong></td>
+                    <td><strong>${totals.total.toFixed(2)}</strong></td>
+                    <td><small>${totals.pendientes.toFixed(2)} pendientes<br>
+                        ${totals.repuestas.toFixed(2)} repuestas</small></td>
+                `;
+                row.style.background = '#f0f0f0';
+                row.style.fontWeight = 'bold';
+                tfoot.appendChild(row);
+            });
+        }
+
+        function exportAdminCSV() {
+            const filterValue = document.getElementById('user-filter').value;
+            const filtered = filterValue
+                ? allUsersData.filter(d => d.userName === filterValue)
+                : allUsersData;
+
+            let csv = 'Usuario,Fecha,Motivo,Inicio,Fin Esperada,Fin Real,H.Esperadas,H.Reales,H.Extras,Repuesto\n';
+
+            filtered.forEach(dia => {
+                const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
+                const horasExtras = Math.max(0, horasReales - horasEsperadas);
+
+                csv += `"${dia.userName}","${dia.fecha}","${dia.motivo || ''}","${dia.horaInicio || ''}",` +
+                       `"${dia.horaFinEsperada || ''}","${dia.horaFinReal || ''}",` +
+                       `${horasEsperadas.toFixed(2)},${horasReales.toFixed(2)},${horasExtras.toFixed(2)},` +
+                       `"${dia.repuesto ? 'Sí' : 'No'}"\n`;
+            });
+
+            const dataBlob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            const filename = filterValue
+                ? `horas_extras_${filterValue}_${new Date().toISOString().split('T')[0]}.csv`
+                : `horas_extras_todos_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         // =====================
