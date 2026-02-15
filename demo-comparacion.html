@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horas Extra RBR - Comparación de Diseños</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .control-panel h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .toggle-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            padding: 0.75rem 2rem;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toggle-btn:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .comparison-container {
+            margin-top: 140px;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .version-panel {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .version-header {
+            padding: 1rem 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.875rem;
+        }
+
+        .version-header.original {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .version-header.nuevo {
+            background: #D97642;
+            color: white;
+        }
+
+        .version-content {
+            padding: 2rem;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        /* Estilos ORIGINALES */
+        .original-styles {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333;
+        }
+
+        .original-styles h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 1.75rem;
+        }
+
+        .original-styles .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .original-styles .user-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .original-styles .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .original-styles .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .original-styles .actions-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .original-styles .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .original-styles .btn:hover {
+            opacity: 0.85;
+        }
+
+        .original-styles .btn-primary {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .original-styles .btn-success {
+            background: #27ae60;
+            color: #fff;
+        }
+
+        .original-styles .btn-secondary {
+            background: #95a5a6;
+            color: #fff;
+        }
+
+        .original-styles .dia {
+            margin-bottom: 12px;
+            padding: 14px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        .original-styles .campo {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 8px;
+        }
+
+        .original-styles .campo label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: 600;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        .original-styles .campo input {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+
+        .original-styles .total {
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 14px;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        /* Estilos NUEVOS */
+        .nuevo-styles {
+            font-family: 'Work Sans', sans-serif;
+            color: #1E293B;
+        }
+
+        .nuevo-styles h1 {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: #475569;
+            margin-bottom: 0.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+
+        .nuevo-styles .subtitle {
+            font-size: 0.95rem;
+            color: #64748B;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .nuevo-styles .user-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #475569;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(71, 85, 105, 0.3);
+        }
+
+        .nuevo-styles .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+        }
+
+        .nuevo-styles .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D97642 0%, #F59E0B 100%);
+            border: 3px solid #D97642;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .nuevo-styles .btn-logout {
+            padding: 0.5rem 1.25rem;
+            background: #DC2626;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nuevo-styles .btn-logout:hover {
+            background: #B91C1C;
+            transform: scale(1.05);
+        }
+
+        .nuevo-styles .actions-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .nuevo-styles .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            font-family: 'Work Sans', sans-serif;
+            font-weight: 800;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nuevo-styles .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .nuevo-styles .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .nuevo-styles .btn-primary {
+            background: #D97642;
+            color: white;
+            box-shadow: 0 4px 14px rgba(217, 118, 66, 0.4);
+        }
+
+        .nuevo-styles .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(217, 118, 66, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .nuevo-styles .btn-success {
+            background: #059669;
+            color: white;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+        }
+
+        .nuevo-styles .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .nuevo-styles .btn-secondary {
+            background: #64748B;
+            color: white;
+            box-shadow: 0 4px 14px rgba(100, 116, 139, 0.4);
+        }
+
+        .nuevo-styles .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(100, 116, 139, 0.5);
+            transform: translateY(-2px);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nuevo-styles .dia {
+            position: relative;
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            background: #FFFFFF;
+            border-left: 6px solid #D97642;
+            border-radius: 8px;
+            box-shadow:
+                0 1px 3px rgba(0,0,0,0.1),
+                0 10px 30px rgba(217, 118, 66, 0.08);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+        }
+
+        .nuevo-styles .dia:nth-child(1) { animation-delay: 0.05s; }
+        .nuevo-styles .dia:nth-child(2) { animation-delay: 0.1s; }
+        .nuevo-styles .dia:nth-child(3) { animation-delay: 0.15s; }
+
+        .nuevo-styles .dia:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 4px 6px rgba(0,0,0,0.1),
+                0 15px 40px rgba(217, 118, 66, 0.12);
+        }
+
+        .nuevo-styles .dia::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(217, 118, 66, 0.03) 0%, transparent 100%);
+            pointer-events: none;
+            border-radius: 8px;
+        }
+
+        .nuevo-styles .campo {
+            display: inline-block;
+            margin-right: 12px;
+            margin-bottom: 8px;
+        }
+
+        .nuevo-styles .campo label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nuevo-styles .campo input {
+            padding: 8px 12px;
+            border: 2px solid #E2E8F0;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-family: 'Work Sans', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .nuevo-styles .campo input:focus {
+            outline: none;
+            border-color: #D97642;
+            box-shadow: 0 0 0 3px rgba(217, 118, 66, 0.1);
+        }
+
+        .nuevo-styles .total {
+            font-weight: 700;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(71, 85, 105, 0.3);
+            font-size: 1.1rem;
+        }
+
+        .nuevo-styles .total strong {
+            color: #F59E0B;
+            font-size: 1.3em;
+        }
+
+        .info-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(249, 158, 11, 0.2);
+            color: #D97642;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-left: 0.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+
+            .control-panel h1 {
+                font-size: 1.2rem;
+            }
+        }
+
+        .feature-highlight {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #F59E0B;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(217, 118, 66, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border-radius: 8px;
+            border-left: 4px solid #D97642;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748B;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #D97642;
+            font-family: 'Archivo Black', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <h1>🎨 Horas Extra RBR - Comparación de Diseños</h1>
+        <div class="toggle-container">
+            <span style="font-weight: 600; opacity: 0.9;">Compara el diseño original vs. el nuevo diseño editorial industrial →</span>
+        </div>
+    </div>
+
+    <div class="comparison-container">
+        <!-- VERSIÓN ORIGINAL -->
+        <div class="version-panel">
+            <div class="version-header original">
+                ⬅️ Diseño Original
+            </div>
+            <div class="version-content original-styles">
+                <h1>Contabilizador de Horas Extras 2026</h1>
+                <p class="subtitle">Horas extras = (Hora Fin Real - Hora Inicio) - (Hora Fin Esperada - Hora Inicio)</p>
+
+                <div class="user-bar">
+                    <div class="user-info">
+                        <div class="user-avatar">JD</div>
+                        <span>Juan Demo</span>
+                    </div>
+                    <button style="padding: 6px 14px; background: #e74c3c; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85em;">
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+                <div class="actions-bar">
+                    <button class="btn btn-primary">+ Agregar día</button>
+                    <button class="btn btn-success">= Calcular Total</button>
+                    <button class="btn btn-secondary">Descargar CSV</button>
+                </div>
+
+                <div class="dia">
+                    <div class="campo">
+                        <label>Fecha</label>
+                        <input type="date" value="2026-02-15">
+                    </div>
+                    <div class="campo">
+                        <label>Motivo</label>
+                        <input type="text" value="Reunión urgente" style="width: 150px;">
+                    </div>
+                    <div class="campo">
+                        <label>Hora Inicio</label>
+                        <input type="time" value="09:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Esperada</label>
+                        <input type="time" value="18:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Real</label>
+                        <input type="time" value="20:30">
+                    </div>
+                </div>
+
+                <div class="dia">
+                    <div class="campo">
+                        <label>Fecha</label>
+                        <input type="date" value="2026-02-14">
+                    </div>
+                    <div class="campo">
+                        <label>Motivo</label>
+                        <input type="text" value="Deployment producción" style="width: 150px;">
+                    </div>
+                    <div class="campo">
+                        <label>Hora Inicio</label>
+                        <input type="time" value="09:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Esperada</label>
+                        <input type="time" value="18:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Real</label>
+                        <input type="time" value="19:15">
+                    </div>
+                </div>
+
+                <div class="dia">
+                    <div class="campo">
+                        <label>Fecha</label>
+                        <input type="date" value="2026-02-13">
+                    </div>
+                    <div class="campo">
+                        <label>Motivo</label>
+                        <input type="text" value="Soporte cliente crítico" style="width: 150px;">
+                    </div>
+                    <div class="campo">
+                        <label>Hora Inicio</label>
+                        <input type="time" value="09:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Esperada</label>
+                        <input type="time" value="18:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Real</label>
+                        <input type="time" value="21:00">
+                    </div>
+                </div>
+
+                <div class="total">
+                    Total Horas Extras Pendientes: <strong>6.75</strong> horas<br>
+                    Total Horas Extras Repuestas: <strong>0.00</strong> horas
+                </div>
+            </div>
+        </div>
+
+        <!-- VERSIÓN NUEVA -->
+        <div class="version-panel">
+            <div class="version-header nuevo">
+                ✨ Nuevo Diseño Editorial Industrial
+            </div>
+            <div class="version-content nuevo-styles">
+                <div style="position: relative;">
+                    <h1>Contabilizador de Horas Extras 2026</h1>
+                    <p class="subtitle">Horas extras = (Hora Fin Real - Hora Inicio) - (Hora Fin Esperada - Hora Inicio)</p>
+                </div>
+
+                <div class="user-bar">
+                    <div class="user-info">
+                        <div class="user-avatar">JD</div>
+                        <span>Juan Demo</span>
+                    </div>
+                    <button class="btn-logout">Cerrar Sesión</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Pendientes</div>
+                        <div class="stat-value">6.75h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Repuestas</div>
+                        <div class="stat-value">0.00h</div>
+                    </div>
+                </div>
+
+                <div class="actions-bar">
+                    <button class="btn btn-primary">+ Agregar día</button>
+                    <button class="btn btn-success">= Calcular Total</button>
+                    <button class="btn btn-secondary">Descargar CSV</button>
+                </div>
+
+                <div class="dia" style="position: relative;">
+                    <span class="feature-highlight">Hover me!</span>
+                    <div class="campo">
+                        <label>Fecha</label>
+                        <input type="date" value="2026-02-15">
+                    </div>
+                    <div class="campo">
+                        <label>Motivo</label>
+                        <input type="text" value="Reunión urgente" style="width: 150px;">
+                    </div>
+                    <div class="campo">
+                        <label>Hora Inicio</label>
+                        <input type="time" value="09:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Esperada</label>
+                        <input type="time" value="18:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Real</label>
+                        <input type="time" value="20:30">
+                    </div>
+                </div>
+
+                <div class="dia">
+                    <div class="campo">
+                        <label>Fecha</label>
+                        <input type="date" value="2026-02-14">
+                    </div>
+                    <div class="campo">
+                        <label>Motivo</label>
+                        <input type="text" value="Deployment producción" style="width: 150px;">
+                    </div>
+                    <div class="campo">
+                        <label>Hora Inicio</label>
+                        <input type="time" value="09:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Esperada</label>
+                        <input type="time" value="18:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Real</label>
+                        <input type="time" value="19:15">
+                    </div>
+                </div>
+
+                <div class="dia">
+                    <div class="campo">
+                        <label>Fecha</label>
+                        <input type="date" value="2026-02-13">
+                    </div>
+                    <div class="campo">
+                        <label>Motivo</label>
+                        <input type="text" value="Soporte cliente crítico" style="width: 150px;">
+                    </div>
+                    <div class="campo">
+                        <label>Hora Inicio</label>
+                        <input type="time" value="09:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Esperada</label>
+                        <input type="time" value="18:00">
+                    </div>
+                    <div class="campo">
+                        <label>Fin Real</label>
+                        <input type="time" value="21:00">
+                    </div>
+                </div>
+
+                <div class="total">
+                    Total Horas Extras Pendientes: <strong>6.75</strong> horas<br>
+                    Total Horas Extras Repuestas: <strong>0.00</strong> horas
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(217, 118, 66, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border-radius: 12px; border-left: 4px solid #D97642;">
+                    <h3 style="font-family: 'Archivo Black', sans-serif; color: #475569; margin-bottom: 0.75rem; font-size: 1.1rem;">✨ Mejoras Implementadas</h3>
+                    <ul style="list-style: none; padding: 0; font-size: 0.9rem; line-height: 1.8;">
+                        <li>✓ Tipografía distinctive: <strong>Archivo Black + Work Sans</strong></li>
+                        <li>✓ Paleta terracota/slate (no azules genéricos)</li>
+                        <li>✓ Cards con hover effect y gradient overlay</li>
+                        <li>✓ Botones con ripple effect al hacer click</li>
+                        <li>✓ Animaciones de entrada escalonadas</li>
+                        <li>✓ Focus states mejorados en inputs</li>
+                        <li>✓ User bar con contraste dramático</li>
+                        <li>✓ Stats cards para mejor jerarquía visual</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Añadir interactividad al botón para mostrar ripple effect
+        document.querySelectorAll('.nuevo-styles .btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // El efecto se maneja con CSS ::after y :active
+                console.log('Button clicked with ripple effect!');
+            });
+        });
+
+        // Mostrar mensaje en consola
+        console.log('%c✨ Horas Extra RBR - Comparación de Diseños', 'font-size: 20px; font-weight: bold; color: #D97642;');
+        console.log('%cNota las diferencias:', 'font-size: 14px; font-weight: bold;');
+        console.log('• Tipografía más bold y característica');
+        console.log('• Paleta de colores única (terracota/slate)');
+        console.log('• Hover effects en las cards');
+        console.log('• Animaciones de entrada');
+        console.log('• Mejor jerarquía visual');
+    </script>
+</body>
+</html>
