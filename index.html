@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contabilizador de Horas Extras</title>
 
-    <!-- Google Fonts: Archivo Black + Work Sans -->
+    <!-- Google Fonts: Archivo Black + Work Sans (non-blocking) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;600;800&display=swap" rel="stylesheet"></noscript>
 
     <style>
         /* CSS Variables - Nueva Paleta */
@@ -31,7 +32,7 @@
         }
 
         body {
-            font-family: 'Work Sans', sans-serif;
+            font-family: 'Work Sans', 'Segoe UI', Arial, sans-serif;
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
@@ -95,7 +96,7 @@
             background: #e8f0fe;
         }
 
-        /* User Bar - MANTENIDO ORIGINAL */
+        /* User Bar */
         #user-bar {
             display: flex;
             justify-content: space-between;
@@ -225,7 +226,7 @@
             transform: translateY(-2px);
         }
 
-        /* Entry Cards - MEJORADAS */
+        /* Entry Cards */
         @keyframes slideInUp {
             from {
                 opacity: 0;
@@ -339,7 +340,7 @@
             transform: scale(1.05);
         }
 
-        /* Totals - MEJORADO */
+        /* Totals */
         #total {
             font-weight: 700;
             margin: 1.5rem 0;
@@ -356,7 +357,7 @@
             font-size: 1.3em;
         }
 
-        /* Table - MEJORADA */
+        /* Table */
         table {
             width: 100%;
             border-collapse: separate;
@@ -425,7 +426,7 @@
             font-size: 0.85em;
         }
 
-        /* Admin Panel - MEJORADO */
+        /* Admin Panel */
         #admin-panel {
             display: none;
             margin-top: 40px;
@@ -508,7 +509,7 @@
 </head>
 <body>
     <h1>Contabilizador de Horas Extras 2026</h1>
-    <p class="subtitle">Horas extras = (Hora Fin Real - Hora Inicio) - (Hora Fin Esperada - Hora Inicio)</p>
+    <p class="subtitle">Horas extras = Horas Reales - Horas Esperadas</p>
 
     <!-- Auth Section -->
     <div id="auth-section">
@@ -545,8 +546,9 @@
                 <tr>
                     <th>Fecha</th>
                     <th>Motivo</th>
-                    <th>Inicio</th>
-                    <th>Fin Esperada</th>
+                    <th>Inicio Esp.</th>
+                    <th>Fin Esp.</th>
+                    <th>Inicio Real</th>
                     <th>Fin Real</th>
                     <th>H. Esperadas</th>
                     <th>H. Reales</th>
@@ -576,8 +578,9 @@
                     <th>Usuario</th>
                     <th>Fecha</th>
                     <th>Motivo</th>
-                    <th>Inicio</th>
-                    <th>Fin Esperada</th>
+                    <th>Inicio Esp.</th>
+                    <th>Fin Esp.</th>
+                    <th>Inicio Real</th>
                     <th>Fin Real</th>
                     <th>H. Esperadas</th>
                     <th>H. Reales</th>
@@ -600,9 +603,6 @@
     <script>
         // =============================================================
         // FIREBASE CONFIGURATION
-        // Replace the values below with your own Firebase project config.
-        // Go to https://console.firebase.google.com/ -> Create project ->
-        // Add web app -> Copy the config object here.
         // =============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyApU7Ik2BY3Swob6VXcKboQyuCU-XEBhdk",
@@ -621,10 +621,9 @@
 
         let dias = [];
         let currentUser = null;
-        let useLocalStorage = false; // fallback if Firebase not configured
-        let allUsersData = []; // Store all users' data for admin panel
+        let useLocalStorage = false;
+        let allUsersData = [];
 
-        // Check if Firebase is properly configured
         function isFirebaseConfigured() {
             return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('YOUR_');
         }
@@ -634,7 +633,6 @@
         // =====================
         function signIn() {
             if (!isFirebaseConfigured()) {
-                // Fallback: skip auth, use localStorage
                 useLocalStorage = true;
                 dias = JSON.parse(localStorage.getItem('horasExtras2026')) || [];
                 document.getElementById('auth-section').style.display = 'none';
@@ -662,9 +660,8 @@
             auth.signOut();
         }
 
-        // Listen for auth state changes
         auth.onAuthStateChanged(user => {
-            if (!isFirebaseConfigured()) return; // skip if not configured
+            if (!isFirebaseConfigured()) return;
             if (user) {
                 currentUser = user;
                 document.getElementById('auth-section').style.display = 'none';
@@ -672,7 +669,6 @@
                 document.getElementById('user-photo').src = user.photoURL || '';
                 document.getElementById('user-name').textContent = user.displayName || user.email;
 
-                // Si es admin, mostrar panel de administración
                 if (user.email === ADMIN_EMAIL) {
                     document.getElementById('admin-panel').style.display = 'block';
                     loadAdminData();
@@ -710,8 +706,9 @@
             const data = {
                 fecha: dia.fecha,
                 motivo: dia.motivo,
-                horaInicio: dia.horaInicio,
+                horaInicioEsperada: dia.horaInicioEsperada || '',
                 horaFinEsperada: dia.horaFinEsperada,
+                horaInicioReal: dia.horaInicioReal || '',
                 horaFinReal: dia.horaFinReal,
                 repuesto: dia.repuesto
             };
@@ -745,7 +742,6 @@
             });
         }
 
-        // Fallback localStorage functions
         function saveLocalData() {
             localStorage.setItem('horasExtras2026', JSON.stringify(dias));
         }
@@ -767,14 +763,11 @@
                         .orderBy('fecha')
                         .get();
 
-                    // Obtener nombre de usuario del currentUser si es el mismo, o del email
                     let userName = userId;
                     if (userId === currentUser.uid) {
                         userName = currentUser.displayName || currentUser.email.split('@')[0];
                     } else {
-                        // Para otros usuarios, usar su UID como nombre por ahora
-                        // En el futuro se puede agregar una colección /users/{uid} con el nombre
-                        userName = userId.substring(0, 8); // Usar primeros 8 chars del UID
+                        userName = userId.substring(0, 8);
                     }
 
                     horasSnapshot.forEach(doc => {
@@ -791,7 +784,6 @@
                     }
                 }
 
-                // Poblar filtro de usuarios
                 const filterSelect = document.getElementById('user-filter');
                 filterSelect.innerHTML = '<option value="">Todos los usuarios</option>';
                 Array.from(userSet).sort().forEach(name => {
@@ -817,15 +809,15 @@
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
 
-            // Agrupar por usuario para totales
             const userTotals = {};
 
             data.forEach(dia => {
-                const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
-                const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
+                const inicioEsp = getInicioEsperada(dia);
+                const inicioReal = getInicioReal(dia);
+                const horasEsperadas = calcularHorasTrabajadas(inicioEsp, dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(inicioReal, dia.horaFinReal);
                 const horasExtras = Math.max(0, horasReales - horasEsperadas);
 
-                // Calcular totales
                 if (!userTotals[dia.userName]) {
                     userTotals[dia.userName] = {
                         pendientes: 0,
@@ -845,8 +837,9 @@
                     <td>${dia.userName}</td>
                     <td>${dia.fecha}</td>
                     <td>${dia.motivo || ''}</td>
-                    <td>${dia.horaInicio || ''}</td>
+                    <td>${inicioEsp}</td>
                     <td>${dia.horaFinEsperada || ''}</td>
+                    <td>${inicioReal}</td>
                     <td>${dia.horaFinReal || ''}</td>
                     <td>${horasEsperadas.toFixed(2)}</td>
                     <td>${horasReales.toFixed(2)}</td>
@@ -858,13 +851,12 @@
                 tbody.appendChild(row);
             });
 
-            // Renderizar totales
             const tfoot = document.getElementById('admin-totals');
             tfoot.innerHTML = '';
             Object.entries(userTotals).forEach(([userName, totals]) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="8"><strong>TOTAL ${userName}</strong></td>
+                    <td colspan="9"><strong>TOTAL ${userName}</strong></td>
                     <td><strong>${totals.total.toFixed(2)}</strong></td>
                     <td><small>${totals.pendientes.toFixed(2)} pendientes<br>
                         ${totals.repuestas.toFixed(2)} repuestas</small></td>
@@ -880,15 +872,17 @@
                 ? allUsersData.filter(d => d.userName === filterValue)
                 : allUsersData;
 
-            let csv = 'Usuario,Fecha,Motivo,Inicio,Fin Esperada,Fin Real,H.Esperadas,H.Reales,H.Extras,Repuesto\n';
+            let csv = 'Usuario,Fecha,Motivo,Inicio Esperado,Fin Esperado,Inicio Real,Fin Real,H.Esperadas,H.Reales,H.Extras,Repuesto\n';
 
             filtered.forEach(dia => {
-                const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
-                const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
+                const inicioEsp = getInicioEsperada(dia);
+                const inicioReal = getInicioReal(dia);
+                const horasEsperadas = calcularHorasTrabajadas(inicioEsp, dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(inicioReal, dia.horaFinReal);
                 const horasExtras = Math.max(0, horasReales - horasEsperadas);
 
-                csv += `"${dia.userName}","${dia.fecha}","${dia.motivo || ''}","${dia.horaInicio || ''}",` +
-                       `"${dia.horaFinEsperada || ''}","${dia.horaFinReal || ''}",` +
+                csv += `"${dia.userName}","${dia.fecha}","${dia.motivo || ''}","${inicioEsp}",` +
+                       `"${dia.horaFinEsperada || ''}","${inicioReal}","${dia.horaFinReal || ''}",` +
                        `${horasEsperadas.toFixed(2)},${horasReales.toFixed(2)},${horasExtras.toFixed(2)},` +
                        `"${dia.repuesto ? 'Sí' : 'No'}"\n`;
             });
@@ -918,6 +912,14 @@
             return minutos / 60;
         }
 
+        // Backward-compatible helpers: old records only have horaInicio
+        function getInicioEsperada(dia) {
+            return dia.horaInicioEsperada || dia.horaInicio || '';
+        }
+        function getInicioReal(dia) {
+            return dia.horaInicioReal || dia.horaInicio || '';
+        }
+
         function loadData() {
             const container = document.getElementById('dias');
             const resumenBody = document.getElementById('resumenBody');
@@ -937,12 +939,16 @@
                         <textarea id="motivo${index}" onchange="updateDia(${index})">${dia.motivo || ''}</textarea>
                     </div>
                     <div class="campo">
-                        <label>Hora Inicio</label>
-                        <input type="time" id="horaInicio${index}" value="${dia.horaInicio || ''}" onchange="updateDia(${index})">
+                        <label>Inicio Esperado</label>
+                        <input type="time" id="horaInicioEsperada${index}" value="${getInicioEsperada(dia)}" onchange="updateDia(${index})">
                     </div>
                     <div class="campo">
-                        <label>Fin Esperada</label>
+                        <label>Fin Esperado</label>
                         <input type="time" id="horaFinEsperada${index}" value="${dia.horaFinEsperada || ''}" onchange="updateDia(${index})">
+                    </div>
+                    <div class="campo">
+                        <label>Inicio Real</label>
+                        <input type="time" id="horaInicioReal${index}" value="${getInicioReal(dia)}" onchange="updateDia(${index})">
                     </div>
                     <div class="campo">
                         <label>Fin Real</label>
@@ -956,15 +962,18 @@
                 `;
                 container.appendChild(div);
 
-                const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
-                const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
+                const inicioEsp = getInicioEsperada(dia);
+                const inicioReal = getInicioReal(dia);
+                const horasEsperadas = calcularHorasTrabajadas(inicioEsp, dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(inicioReal, dia.horaFinReal);
                 const horasExtras = Math.max(0, horasReales - horasEsperadas);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${dia.fecha}</td>
                     <td>${dia.motivo || ''}</td>
-                    <td>${dia.horaInicio || ''}</td>
+                    <td>${inicioEsp}</td>
                     <td>${dia.horaFinEsperada || ''}</td>
+                    <td>${inicioReal}</td>
                     <td>${dia.horaFinReal || ''}</td>
                     <td>${horasEsperadas.toFixed(2)}</td>
                     <td>${horasReales.toFixed(2)}</td>
@@ -978,7 +987,7 @@
 
         function agregarDia() {
             const fecha = new Date().toISOString().split('T')[0];
-            const nuevoDia = { fecha, motivo: '', horaInicio: '', horaFinEsperada: '', horaFinReal: '', repuesto: false };
+            const nuevoDia = { fecha, motivo: '', horaInicioEsperada: '', horaFinEsperada: '', horaInicioReal: '', horaFinReal: '', repuesto: false };
 
             if (useLocalStorage) {
                 dias.push(nuevoDia);
@@ -998,12 +1007,13 @@
         function updateDia(index) {
             const fecha = document.getElementById(`fecha${index}`).value;
             const motivo = document.getElementById(`motivo${index}`).value;
-            const horaInicio = document.getElementById(`horaInicio${index}`).value;
+            const horaInicioEsperada = document.getElementById(`horaInicioEsperada${index}`).value;
             const horaFinEsperada = document.getElementById(`horaFinEsperada${index}`).value;
+            const horaInicioReal = document.getElementById(`horaInicioReal${index}`).value;
             const horaFinReal = document.getElementById(`horaFinReal${index}`).value;
             const repuesto = document.getElementById(`repuesto${index}`).checked;
 
-            const updated = { ...dias[index], fecha, motivo, horaInicio, horaFinEsperada, horaFinReal, repuesto };
+            const updated = { ...dias[index], fecha, motivo, horaInicioEsperada, horaFinEsperada, horaInicioReal, horaFinReal, repuesto };
             dias[index] = updated;
 
             if (useLocalStorage) {
@@ -1032,8 +1042,8 @@
             let totalExtras = 0;
             let totalRepuestas = 0;
             dias.forEach(dia => {
-                const horasEsperadas = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinEsperada);
-                const horasReales = calcularHorasTrabajadas(dia.horaInicio, dia.horaFinReal);
+                const horasEsperadas = calcularHorasTrabajadas(getInicioEsperada(dia), dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(getInicioReal(dia), dia.horaFinReal);
                 const extras = Math.max(0, horasReales - horasEsperadas);
                 if (dia.repuesto) {
                     totalRepuestas += extras;
@@ -1065,9 +1075,9 @@
         }
 
         function descargarRespaldo() {
-            let csv = 'Fecha,Motivo,Hora Inicio,Hora Fin Esperada,Hora Fin Real,Repuesto\n';
+            let csv = 'Fecha,Motivo,Inicio Esperado,Fin Esperado,Inicio Real,Fin Real,Repuesto\n';
             dias.forEach(dia => {
-                csv += `"${dia.fecha}","${dia.motivo || ''}","${dia.horaInicio || ''}","${dia.horaFinEsperada || ''}","${dia.horaFinReal || ''}","${dia.repuesto ? 'Sí' : 'No'}"\n`;
+                csv += `"${dia.fecha}","${dia.motivo || ''}","${getInicioEsperada(dia)}","${dia.horaFinEsperada || ''}","${getInicioReal(dia)}","${dia.horaFinReal || ''}","${dia.repuesto ? 'Sí' : 'No'}"\n`;
             });
             const dataBlob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(dataBlob);
