@@ -245,10 +245,10 @@
             background: var(--color-surface);
             border-left: 6px solid var(--color-primary);
             border-radius: 8px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            align-items: end;
+            gap: 12px;
             box-shadow:
                 0 1px 3px rgba(0,0,0,0.1),
                 0 10px 30px rgba(217, 118, 66, 0.08);
@@ -317,11 +317,35 @@
             min-height: 32px;
         }
 
-        .campo-checkbox {
-            flex-direction: row;
-            align-items: center;
-            gap: 5px;
-            margin-top: 18px;
+        .campo-repuesto {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.85em;
+        }
+
+        .campo-repuesto label {
+            margin-bottom: 4px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--color-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .campo-repuesto input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #E2E8F0;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-family: 'Work Sans', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .campo-repuesto input[type="number"]:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(217, 118, 66, 0.1);
         }
 
         .eliminar {
@@ -329,10 +353,11 @@
             cursor: pointer;
             font-weight: 700;
             font-size: 0.85em;
-            margin-left: auto;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             transition: transform 0.2s;
+            justify-self: end;
+            align-self: center;
         }
 
         .eliminar:hover {
@@ -486,12 +511,11 @@
         /* Responsive */
         @media (max-width: 600px) {
             .dia {
-                flex-direction: column;
-                align-items: flex-start;
+                grid-template-columns: 1fr 1fr;
             }
             .eliminar {
-                margin-left: 0;
-                margin-top: 8px;
+                grid-column: 1 / -1;
+                justify-self: start;
             }
             .actions-bar {
                 flex-direction: column;
@@ -553,7 +577,7 @@
                     <th>H. Esperadas</th>
                     <th>H. Reales</th>
                     <th>H. Extras</th>
-                    <th>Repuesto</th>
+                    <th>H. Repuestas</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -585,7 +609,7 @@
                     <th>H. Esperadas</th>
                     <th>H. Reales</th>
                     <th>H. Extras</th>
-                    <th>Repuesto</th>
+                    <th>H. Repuestas</th>
                 </tr>
             </thead>
             <tbody id="admin-table-body"></tbody>
@@ -710,7 +734,7 @@
                 horaFinEsperada: dia.horaFinEsperada,
                 horaInicioReal: dia.horaInicioReal || '',
                 horaFinReal: dia.horaFinReal,
-                repuesto: dia.repuesto
+                horasRepuestas: getHorasRepuestas(dia)
             };
             if (dia.id) {
                 return getUserCollection().doc(dia.id).set(data).catch(err => {
@@ -818,19 +842,15 @@
                 const horasReales = calcularHorasTrabajadas(inicioReal, dia.horaFinReal);
                 const horasExtras = Math.max(0, horasReales - horasEsperadas);
 
+                const repuestas = getHorasRepuestas(dia);
                 if (!userTotals[dia.userName]) {
                     userTotals[dia.userName] = {
-                        pendientes: 0,
-                        repuestas: 0,
-                        total: 0
+                        extras: 0,
+                        repuestas: 0
                     };
                 }
-                userTotals[dia.userName].total += horasExtras;
-                if (dia.repuesto) {
-                    userTotals[dia.userName].repuestas += horasExtras;
-                } else {
-                    userTotals[dia.userName].pendientes += horasExtras;
-                }
+                userTotals[dia.userName].extras += horasExtras;
+                userTotals[dia.userName].repuestas += repuestas;
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -844,9 +864,7 @@
                     <td>${horasEsperadas.toFixed(2)}</td>
                     <td>${horasReales.toFixed(2)}</td>
                     <td><strong>${horasExtras.toFixed(2)}</strong></td>
-                    <td><span style="color: ${dia.repuesto ? 'var(--color-success)' : 'var(--color-danger)'}; font-weight:600;">
-                        ${dia.repuesto ? 'Sí' : 'No'}
-                    </span></td>
+                    <td><strong>${repuestas.toFixed(2)}</strong></td>
                 `;
                 tbody.appendChild(row);
             });
@@ -854,12 +872,13 @@
             const tfoot = document.getElementById('admin-totals');
             tfoot.innerHTML = '';
             Object.entries(userTotals).forEach(([userName, totals]) => {
+                const pendientes = Math.max(0, totals.extras - totals.repuestas);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td colspan="9"><strong>TOTAL ${userName}</strong></td>
-                    <td><strong>${totals.total.toFixed(2)}</strong></td>
-                    <td><small>${totals.pendientes.toFixed(2)} pendientes<br>
-                        ${totals.repuestas.toFixed(2)} repuestas</small></td>
+                    <td><strong>${totals.extras.toFixed(2)}</strong></td>
+                    <td><small>${totals.repuestas.toFixed(2)} repuestas<br>
+                        ${pendientes.toFixed(2)} pendientes</small></td>
                 `;
                 row.style.fontWeight = 'bold';
                 tfoot.appendChild(row);
@@ -872,7 +891,7 @@
                 ? allUsersData.filter(d => d.userName === filterValue)
                 : allUsersData;
 
-            let csv = 'Usuario,Fecha,Motivo,Inicio Esperado,Fin Esperado,Inicio Real,Fin Real,H.Esperadas,H.Reales,H.Extras,Repuesto\n';
+            let csv = 'Usuario,Fecha,Motivo,Inicio Esperado,Fin Esperado,Inicio Real,Fin Real,H.Esperadas,H.Reales,H.Extras,H.Repuestas\n';
 
             filtered.forEach(dia => {
                 const inicioEsp = getInicioEsperada(dia);
@@ -884,7 +903,7 @@
                 csv += `"${dia.userName}","${dia.fecha}","${dia.motivo || ''}","${inicioEsp}",` +
                        `"${dia.horaFinEsperada || ''}","${inicioReal}","${dia.horaFinReal || ''}",` +
                        `${horasEsperadas.toFixed(2)},${horasReales.toFixed(2)},${horasExtras.toFixed(2)},` +
-                       `"${dia.repuesto ? 'Sí' : 'No'}"\n`;
+                       `${(getHorasRepuestas(dia)).toFixed(2)}\n`;
             });
 
             const dataBlob = new Blob([csv], { type: 'text/csv' });
@@ -918,6 +937,18 @@
         }
         function getInicioReal(dia) {
             return dia.horaInicioReal || dia.horaInicio || '';
+        }
+
+        // Migrate old boolean repuesto to numeric horasRepuestas
+        function getHorasRepuestas(dia) {
+            if (typeof dia.horasRepuestas === 'number') return dia.horasRepuestas;
+            if (dia.repuesto === true) {
+                // Old format: repuesto was boolean, assume full extras were repaid
+                const horasEsperadas = calcularHorasTrabajadas(getInicioEsperada(dia), dia.horaFinEsperada);
+                const horasReales = calcularHorasTrabajadas(getInicioReal(dia), dia.horaFinReal);
+                return Math.max(0, horasReales - horasEsperadas);
+            }
+            return 0;
         }
 
         function loadData() {
@@ -954,9 +985,9 @@
                         <label>Fin Real</label>
                         <input type="time" id="horaFinReal${index}" value="${dia.horaFinReal || ''}" onchange="updateDia(${index})">
                     </div>
-                    <div class="campo campo-checkbox">
-                        <input type="checkbox" id="repuesto${index}" ${dia.repuesto ? 'checked' : ''} onchange="updateDia(${index})">
-                        <label>Repuesto</label>
+                    <div class="campo-repuesto">
+                        <label>H. Repuestas</label>
+                        <input type="number" id="horasRepuestas${index}" value="${getHorasRepuestas(dia)}" min="0" step="0.25" onchange="updateDia(${index})">
                     </div>
                     <span class="eliminar" onclick="eliminarDia(${index})">Eliminar</span>
                 `;
@@ -978,7 +1009,7 @@
                     <td>${horasEsperadas.toFixed(2)}</td>
                     <td>${horasReales.toFixed(2)}</td>
                     <td><strong>${horasExtras.toFixed(2)}</strong></td>
-                    <td><span style="color: ${dia.repuesto ? 'var(--color-success)' : 'var(--color-danger)'}; font-weight:600;">${dia.repuesto ? 'Sí' : 'No'}</span></td>
+                    <td><strong>${(getHorasRepuestas(dia)).toFixed(2)}</strong></td>
                     <td><span class="eliminar" onclick="eliminarDia(${index})">Eliminar</span></td>
                 `;
                 resumenBody.appendChild(row);
@@ -987,7 +1018,7 @@
 
         function agregarDia() {
             const fecha = new Date().toISOString().split('T')[0];
-            const nuevoDia = { fecha, motivo: '', horaInicioEsperada: '', horaFinEsperada: '', horaInicioReal: '', horaFinReal: '', repuesto: false };
+            const nuevoDia = { fecha, motivo: '', horaInicioEsperada: '', horaFinEsperada: '', horaInicioReal: '', horaFinReal: '', horasRepuestas: 0 };
 
             if (useLocalStorage) {
                 dias.push(nuevoDia);
@@ -1011,9 +1042,9 @@
             const horaFinEsperada = document.getElementById(`horaFinEsperada${index}`).value;
             const horaInicioReal = document.getElementById(`horaInicioReal${index}`).value;
             const horaFinReal = document.getElementById(`horaFinReal${index}`).value;
-            const repuesto = document.getElementById(`repuesto${index}`).checked;
+            const horasRepuestas = parseFloat(document.getElementById(`horasRepuestas${index}`).value) || 0;
 
-            const updated = { ...dias[index], fecha, motivo, horaInicioEsperada, horaFinEsperada, horaInicioReal, horaFinReal, repuesto };
+            const updated = { ...dias[index], fecha, motivo, horaInicioEsperada, horaFinEsperada, horaInicioReal, horaFinReal, horasRepuestas };
             dias[index] = updated;
 
             if (useLocalStorage) {
@@ -1045,15 +1076,14 @@
                 const horasEsperadas = calcularHorasTrabajadas(getInicioEsperada(dia), dia.horaFinEsperada);
                 const horasReales = calcularHorasTrabajadas(getInicioReal(dia), dia.horaFinReal);
                 const extras = Math.max(0, horasReales - horasEsperadas);
-                if (dia.repuesto) {
-                    totalRepuestas += extras;
-                } else {
-                    totalExtras += extras;
-                }
+                totalExtras += extras;
+                totalRepuestas += (getHorasRepuestas(dia));
             });
+            const pendientes = Math.max(0, totalExtras - totalRepuestas);
             document.getElementById('total').innerHTML = `
-                Total Horas Extras Pendientes: <strong>${totalExtras.toFixed(2)}</strong> horas<br>
-                Total Horas Extras Repuestas: <strong>${totalRepuestas.toFixed(2)}</strong> horas
+                Total Horas Extras Acumuladas: <strong>${totalExtras.toFixed(2)}</strong> horas<br>
+                Total Horas Repuestas: <strong>${totalRepuestas.toFixed(2)}</strong> horas<br>
+                <span style="font-size:1.1em;">Te deben: <strong>${pendientes.toFixed(2)}</strong> horas</span>
             `;
         }
 
@@ -1075,9 +1105,9 @@
         }
 
         function descargarRespaldo() {
-            let csv = 'Fecha,Motivo,Inicio Esperado,Fin Esperado,Inicio Real,Fin Real,Repuesto\n';
+            let csv = 'Fecha,Motivo,Inicio Esperado,Fin Esperado,Inicio Real,Fin Real,H.Repuestas\n';
             dias.forEach(dia => {
-                csv += `"${dia.fecha}","${dia.motivo || ''}","${getInicioEsperada(dia)}","${dia.horaFinEsperada || ''}","${getInicioReal(dia)}","${dia.horaFinReal || ''}","${dia.repuesto ? 'Sí' : 'No'}"\n`;
+                csv += `"${dia.fecha}","${dia.motivo || ''}","${getInicioEsperada(dia)}","${dia.horaFinEsperada || ''}","${getInicioReal(dia)}","${dia.horaFinReal || ''}",${(getHorasRepuestas(dia)).toFixed(2)}\n`;
             });
             const dataBlob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(dataBlob);
