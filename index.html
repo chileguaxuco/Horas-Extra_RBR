@@ -246,7 +246,7 @@
             border-left: 6px solid var(--color-primary);
             border-radius: 8px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            grid-template-columns: repeat(6, 1fr);
             align-items: end;
             gap: 12px;
             box-shadow:
@@ -1083,7 +1083,7 @@
             document.getElementById('total').innerHTML = `
                 Total Horas Extras Acumuladas: <strong>${totalExtras.toFixed(2)}</strong> horas<br>
                 Total Horas Repuestas: <strong>${totalRepuestas.toFixed(2)}</strong> horas<br>
-                <span style="font-size:1.1em;">Te deben: <strong>${pendientes.toFixed(2)}</strong> horas</span>
+                <span style="font-size:1.1em;">Total Balance de Horas a Favor: <strong>${pendientes.toFixed(2)}</strong> horas</span>
             `;
         }
 
